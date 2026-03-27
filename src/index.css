@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-beige: #FDFBF7;
+  --color-beige-dark: #EFE9D9;
+  --color-dark-red: #8B1C1C;
+  --color-dark-red-light: #A72626;
+  --color-gold: #D4AF37;
+  --color-gold-light: #F3E5AB;
+  --color-gold-dark: #AA7C11;
+  --color-ink: #2C2A29;
+  --color-ink-light: #5C5A59;
+}
+
+body {
+  background-color: var(--color-beige);
+  color: var(--color-ink);
+  font-family: 'Noto Sans TC', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: 'Noto Serif TC', serif;
+}
+
+.writing-vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* Paper texture overlay for traditional feel - simplified for mobile performance */
+.bg-texture {
+  position: relative;
+}
+.bg-texture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(#AA7C11 0.5px, transparent 0.5px);
+  background-size: 12px 12px;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 40%, var(--color-gold-dark) 100%);
+}
+
+.gold-text-gradient {
+  background: linear-gradient(135deg, var(--color-gold-light) 0%, var(--color-gold) 50%, var(--color-gold-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.temple-card {
+  background: linear-gradient(to bottom, #FFFFFF, var(--color-beige));
+  box-shadow: 0 4px 20px rgba(139, 28, 28, 0.05), inset 0 1px 0 rgba(255,255,255,0.8);
+}

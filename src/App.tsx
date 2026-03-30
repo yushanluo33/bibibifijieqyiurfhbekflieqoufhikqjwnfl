@@ -12,11 +12,23 @@ import Chat from './pages/Chat';
 import MakeWish from './pages/MakeWish';
 import DailyReminder from './pages/DailyReminder';
 import { temples } from './data/temples';
+import LiffGuide from './components/LiffGuide';
 
 function AppContent() {
   const [searchParams] = useSearchParams();
   const tid = searchParams.get('tid') || 'default';
   const temple = temples[tid] || temples['default'];
+
+  // Check if the current browser environment is LINE in-app browser
+  const isLineApp = () => /Line/i.test(navigator.userAgent);
+
+  if (!isLineApp()) {
+    return (
+      <div className="max-w-md mx-auto min-h-[100vh] min-h-[100dvh] bg-beige relative overflow-hidden shadow-xl bg-texture">
+        <LiffGuide />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto min-h-[100vh] min-h-[100dvh] bg-beige relative overflow-hidden shadow-xl bg-texture">

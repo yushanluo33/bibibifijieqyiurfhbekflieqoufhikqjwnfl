@@ -19,10 +19,14 @@ function AppContent() {
   const tid = searchParams.get('tid') || 'default';
   const temple = temples[tid] || temples['default'];
 
-  // Check if the current browser environment is LINE in-app browser
   const isLineApp = () => /Line/i.test(navigator.userAgent);
+  const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   if (!isLineApp()) {
+    if (isMobile()) {
+      window.location.href = 'https://liff.line.me/2009623218-lr2ajozK';
+      return null;
+    }
     return (
       <div className="max-w-md mx-auto min-h-[100vh] min-h-[100dvh] bg-beige relative overflow-hidden shadow-xl bg-texture">
         <LiffGuide />

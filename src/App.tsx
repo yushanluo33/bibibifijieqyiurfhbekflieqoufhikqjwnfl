@@ -23,7 +23,8 @@ function AppContent() {
   const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   if (!isLineApp()) {
-    if (isMobile()) {
+    if (isMobile() && !sessionStorage.getItem('liff_redirected')) {
+      sessionStorage.setItem('liff_redirected', '1');
       window.location.href = 'https://liff.line.me/2009623218-lr2ajozK';
       return null;
     }

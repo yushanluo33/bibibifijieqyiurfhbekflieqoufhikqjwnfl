@@ -25,7 +25,19 @@ function AppContent() {
   if (!isLineApp()) {
     if (isMobile() && !sessionStorage.getItem('liff_redirected')) {
       sessionStorage.setItem('liff_redirected', '1');
-      window.location.href = 'https://liff.line.me/2009623218-lr2ajozK';
+
+      const liffId = '2009623218-lr2ajozK';
+      // 先嘗試 deep link 喚起 LINE App
+      window.location.href = `line://app/${liffId}`;
+      // LINE 未安裝或無法喚起時，1.5 秒後 fallback 到 liff.line.me
+      const timer = setTimeout(() => {
+        window.location.href = `https://liff.line.me/${liffId}`;
+      }, 1500);
+      // 若 LINE 成功開啟（頁面進入背景），取消 fallback
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) clearTimeout(timer);
+      }, { once: true });
+
       return null;
     }
     return (

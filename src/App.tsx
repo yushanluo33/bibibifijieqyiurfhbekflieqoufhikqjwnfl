@@ -62,11 +62,11 @@ function AppContent() {
     );
   }
 
-  // Token gate：驗證通過後存進 sessionStorage，換頁不需重驗
+  // Token gate：驗證通過後存進 localStorage（LIFF redirect 不會清掉）
   if (token === TEST_TOKEN) {
-    sessionStorage.setItem('nfc_verified', '1');
+    localStorage.setItem('nfc_verified', '1');
   }
-  const verified = sessionStorage.getItem('nfc_verified') === '1';
+  const verified = localStorage.getItem('nfc_verified') === '1';
 
   if (!verified) {
     return (

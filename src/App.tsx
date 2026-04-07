@@ -53,13 +53,18 @@ function AppContent() {
     );
   }
 
-  // Token gate：有 token 時驗證
-  if (token && token !== TEST_TOKEN) {
+  // Token gate：驗證通過後存進 sessionStorage，換頁不需重驗
+  if (token === TEST_TOKEN) {
+    sessionStorage.setItem('nfc_verified', '1');
+  }
+  const verified = sessionStorage.getItem('nfc_verified') === '1';
+
+  if (!verified) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-3 text-center px-8">
         <p className="text-2xl">⛔</p>
-        <p className="text-gray-700 font-medium">連結已失效</p>
-        <p className="text-sm text-gray-400">請重新掃描 NFC 標籤</p>
+        <p className="text-gray-700 font-medium">請先掃描 NFC 標籤</p>
+        <p className="text-sm text-gray-400">透過 NFC 標籤進入才能使用</p>
       </div>
     );
   }

@@ -19,8 +19,17 @@ const TEST_TOKEN = 'TEST_TOKEN_123';
 
 function AppContent() {
   const [searchParams] = useSearchParams();
-  const tid = searchParams.get('tid') || 'default';
-  const token = searchParams.get('token');
+
+  // LIFF 會將參數包在 liff.state 裡，需要額外解析
+  let token = searchParams.get('token');
+  let tid = searchParams.get('tid') || 'default';
+  const liffState = searchParams.get('liff.state');
+  if (liffState) {
+    const liffParams = new URLSearchParams(liffState.replace(/^\?/, ''));
+    if (!token) token = liffParams.get('token');
+    if (!searchParams.get('tid')) tid = liffParams.get('tid') || 'default';
+  }
+
   const temple = temples[tid] || temples['default'];
 
   const isLineApp = () => /Line/i.test(navigator.userAgent);

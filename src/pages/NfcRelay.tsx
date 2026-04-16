@@ -38,9 +38,10 @@ export default function NfcRelay() {
           return
         }
 
-        // 驗證通過，跳轉 LIFF
+        // 驗證通過，跳轉 LIFF（帶 session token）
         setStatus('redirecting')
-        const params = `?CSN=${csn}&TSN=${tsn}&TAC=${tac}`
+        const data = await res.json()
+        const params = `?session=${data.sessionToken}`
         const liffState = encodeURIComponent(params)
         const deepLink = `line://app/${LIFF_ID}?liff.state=${liffState}`
         const fallbackUrl = `https://liff.line.me/${LIFF_ID}?liff.state=${liffState}`

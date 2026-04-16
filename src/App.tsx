@@ -4,6 +4,7 @@
  */
 
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import TempleHome from './pages/TempleHome';
 import Meditation from './pages/Meditation';
 import BlessingMenu from './pages/BlessingMenu';
@@ -12,25 +13,12 @@ import Chat from './pages/Chat';
 import MakeWish from './pages/MakeWish';
 import DailyReminder from './pages/DailyReminder';
 import NfcRelay from './pages/NfcRelay';
-import { temples } from './data/temples';
+import { temples, TempleData } from './data/temples';
 import LiffGuide from './components/LiffGuide';
-
-const TEST_TOKEN = 'TEST_TOKEN_123';
 
 function AppContent() {
   const [searchParams] = useSearchParams();
-
-  // LIFF 會將參數包在 liff.state 裡，需要額外解析
-  let token = searchParams.get('token');
-  let tid = searchParams.get('tid') || 'default';
-  const liffState = searchParams.get('liff.state');
-  if (liffState) {
-    const liffParams = new URLSearchParams(liffState.replace(/^\?/, ''));
-    if (!token) token = liffParams.get('token');
-    if (!searchParams.get('tid')) tid = liffParams.get('tid') || 'default';
-  }
-
-  const temple = temples[tid] || temples['default'];
+  const [verifyState, setVerifyState] = useState<'loading' | 'ok' | 'fail'>('loading');
 
   const isLineApp = () => /Line/i.test(navigator.userAgent);
   const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -40,10 +28,10 @@ function AppContent() {
     return <Routes><Route path="/relay" element={<NfcRelay />} /></Routes>;
   }
 
+  // 非 LINE 瀏覽器處理
   if (!isLineApp()) {
     if (isMobile() && !sessionStorage.getItem('liff_redirected')) {
       sessionStorage.setItem('liff_redirected', '1');
-
       const liffId = '2009623218-lr2ajozK';
       window.location.href = `line://app/${liffId}`;
       const timer = setTimeout(() => {
@@ -52,7 +40,6 @@ function AppContent() {
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) clearTimeout(timer);
       }, { once: true });
-
       return null;
     }
     return (
@@ -62,13 +49,69 @@ function AppContent() {
     );
   }
 
-  // Token gate：驗證通過後存進 localStorage（LIFF redirect 不會清掉）
-  if (token === TEST_TOKEN) {
-    localStorage.setItem('nfc_verified', '1');
+  // 解析 session token（直接或從 liff.state 裡）
+  let session = searchParams.get('session');
+  const liffState = searchParams.get('liff.state');
+  if (!session && liffState) {
+    const liffParams = new URLSearchParams(liffState.replace(/^\?/, ''));
+    session = liffParams.get('session');
   }
-  const verified = localStorage.getItem('nfc_verified') === '1';
 
-  if (!verified) {
+  const tid = (() => {
+    let t = searchParams.get('tid');
+    if (!t && liffState) t = new URLSearchParams(liffState.replace(/^\?/, '')).get('tid');
+    return t || 'default';
+  })();
+  const temple = temples[tid] || temples['default'];
+
+  return <SessionGate session={session} verifyState={verifyState} setVerifyState={setVerifyState} temple={temple} />;
+}
+
+function SessionGate({
+  session,
+  verifyState,
+  setVerifyState,
+  temple,
+}: {
+  session: string | null;
+  verifyState: 'loading' | 'ok' | 'fail';
+  setVerifyState: (s: 'loading' | 'ok' | 'fail') => void;
+  temple: TempleData;
+}) {
+  useEffect(() => {
+    // 已有 localStorage 快取，直接放行
+    if (localStorage.getItem('nfc_verified') === '1') {
+      setVerifyState('ok');
+      return;
+    }
+    // 有新的 session token，向後端驗證
+    if (session) {
+      fetch(`/api/verify-session?token=${encodeURIComponent(session)}`)
+        .then((res) => {
+          if (res.ok) {
+            localStorage.setItem('nfc_verified', '1');
+            setVerifyState('ok');
+          } else {
+            setVerifyState('fail');
+          }
+        })
+        .catch(() => setVerifyState('fail'));
+      return;
+    }
+    // 沒有 session 也沒有快取
+    setVerifyState('fail');
+  }, [session, setVerifyState]);
+
+  if (verifyState === 'loading') {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-3">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600" />
+        <p className="text-gray-500 text-sm">驗證中...</p>
+      </div>
+    );
+  }
+
+  if (verifyState === 'fail') {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-3 text-center px-8">
         <p className="text-2xl">⛔</p>

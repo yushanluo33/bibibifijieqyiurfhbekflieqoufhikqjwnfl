@@ -47,5 +47,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Database error' })
   }
 
-  return res.status(200).json({ valid: true })
+  // 建立 session token
+  const sessionRes = await fetch(`${SUPABASE_URL}/rest/v1/sessions`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify({ csn, tsn }),
+  })
+
+  if (!sessionRes.ok) {
+    return res.status(500).json({ error: 'Session creation failed' })
+  }
+
+  const [session] = await sessionRes.json()
+  return res.status(200).json({ valid: true, sessionToken: session.token })
 }

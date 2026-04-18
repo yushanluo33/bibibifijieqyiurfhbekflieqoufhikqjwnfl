@@ -8,15 +8,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { tac, csn, tsn } = req.body as { tac: string; csn: string; tsn: string }
+  const { data } = req.body as { data: string }
 
-  if (!tac || !csn || !tsn) {
-    return res.status(400).json({ error: 'Missing parameters' })
+  if (!data) {
+    return res.status(400).json({ error: 'Missing data' })
   }
 
-  // 查詢 TAC 是否已使用
+  // 查詢 data 是否已使用過
   const checkRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/used_tacs?tac=eq.${encodeURIComponent(tac)}&select=tac`,
+    `${SUPABASE_URL}/rest/v1/used_data?data=eq.${encodeURIComponent(data)}&select=data`,
     {
       headers: {
         apikey: SUPABASE_SERVICE_KEY,
@@ -28,11 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const existing = await checkRes.json()
 
   if (existing.length > 0) {
-    return res.status(403).json({ error: 'TAC already used' })
+    return res.status(403).json({ error: 'Data already used' })
   }
 
   // 寫入已使用記錄
-  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/used_tacs`, {
+  const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/used_data`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_SERVICE_KEY,
@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'Content-Type': 'application/json',
       Prefer: 'return=minimal',
     },
-    body: JSON.stringify({ tac, csn, tsn }),
+    body: JSON.stringify({ data }),
   })
 
   if (!insertRes.ok) {
@@ -56,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'Content-Type': 'application/json',
       Prefer: 'return=representation',
     },
-    body: JSON.stringify({ csn, tsn }),
+    body: JSON.stringify({ data }),
   })
 
   if (!sessionRes.ok) {

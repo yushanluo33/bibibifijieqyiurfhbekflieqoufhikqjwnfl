@@ -10,12 +10,10 @@ export default function NfcRelay() {
   const [status, setStatus] = useState<Status>('verifying')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const csn = searchParams.get('CSN') ?? ''
-  const tsn = searchParams.get('TSN') ?? ''
-  const tac = searchParams.get('TAC') ?? ''
+  const data = searchParams.get('data') ?? ''
 
   useEffect(() => {
-    if (!csn || !tsn || !tac) {
+    if (!data) {
       setErrorMsg('缺少必要參數，請重新掃描 NFC')
       setStatus('error')
       return
@@ -24,7 +22,7 @@ export default function NfcRelay() {
     fetch('/api/verify-tac', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ csn, tsn, tac }),
+      body: JSON.stringify({ data }),
     })
       .then(async (res) => {
         if (res.status === 403) {
@@ -40,8 +38,8 @@ export default function NfcRelay() {
 
         // 驗證通過，跳轉 LIFF（帶 session token）
         setStatus('redirecting')
-        const data = await res.json()
-        const params = `?session=${data.sessionToken}`
+        const body = await res.json()
+        const params = `?session=${body.sessionToken}`
         const liffState = encodeURIComponent(params)
         const deepLink = `line://app/${LIFF_ID}?liff.state=${liffState}`
         const fallbackUrl = `https://liff.line.me/${LIFF_ID}?liff.state=${liffState}`
@@ -55,7 +53,7 @@ export default function NfcRelay() {
         setErrorMsg('網路錯誤，請稍後再試')
         setStatus('error')
       })
-  }, [csn, tsn, tac])
+  }, [data])
 
   if (status === 'error') {
     return (
